@@ -1,7 +1,12 @@
+Вот полный код файла `MainActivity.java` с учетом всех реализованных функций:
+
+```java
 package com.example.depositcalculator;
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
@@ -26,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
         deposits = new ArrayList<>();
         totalAmountText = findViewById(R.id.total_amount_text);
-        currentAmountText = findViewById(R.id.current_amount_text); // Новый TextView для текущей суммы
+        currentAmountText = findViewById(R.id.current_amount_text);
         sharedPreferences = getSharedPreferences("deposit_data", Context.MODE_PRIVATE);
         gson = new Gson();
         
@@ -68,6 +73,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Анимация текущей суммы
         startCurrentAmountAnimation();
+
+        // Обработчик долгого нажатия для редактирования вкладов
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+            showEditDepositDialog(position);
+            return true;
+        });
     }
 
     private void startCurrentAmountAnimation() {
@@ -221,4 +232,86 @@ public class MainActivity extends AppCompatActivity {
             closeDateButton.setText(formatDate(closeCalendar.getTime()));
         };
 
-        openDate…
+        openDateButton.setOnClickListener(v -> new DatePickerDialog(
+                MainActivity.this, openDateListener,
+                openCalendar.get(Calendar.YEAR),
+                openCalendar.get(Calendar.MONTH),
+                openCalendar.get(Calendar.DAY_OF_MONTH)).show());
+
+        closeDateButton.setOnClickListener(v -> new DatePickerDialog(
+                MainActivity.this, closeDateListener,
+                closeCalendar.get(Calendar.YEAR),
+                closeCalendar.get(Calendar.MONTH),
+                closeCalendar.get(Calendar.DAY_OF_MONTH)).show());
+
+        builder.setPositiveButton("Сохранить", (dialog, which) -> {
+            try {
+                double amount = Double.parseDouble(amountEdit.getText().toString());
+                double interest = Double.parseDouble(interestEdit.getText().toString());
+                
+                // Обновим значения вклада
+                deposit.setAmount(amount);
+                deposit.setInterestRate(interest);
+                deposit.setOpenDate(openCalendar.getTime());
+                deposit.setCloseDate(closeCalendar.getTime());
+                
+                adapter.notifyDataSetChanged();
+                updateTotalAmount();
+                saveDeposits(); // Сохраняем данные после редактирования
+            } catch (NumberFormatException e) {
+                Toast.makeText(MainActivity.this, "Введите корректные данные", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Удалить", (dialog, which) -> {
+            deposits.remove(position);
+            adapter.notifyDataSetChanged();
+            updateTotalAmount();
+            saveDeposits(); // Сохраняем данные после удаления
+        });
+
+        builder.setNeutralButton("Отмена", null);
+        builder.create().show();
+    }
+
+    private String formatDate(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        return String.format("%02d.%02d.%04d", 
+                cal.get(Calendar.DAY_OF_MONTH),
+                cal.get(Calendar.MONTH) + 1,
+                cal.get(Calendar.YEAR));
+    }
+
+    private void updateTotalAmount() {
+        double total = 0;
+        double currentTotal = 0;
+        double totalGrowthPerSecond = 0;
+        double totalGrowthPerMinute = 0;
+        double totalGrowthPerHour = 0;
+        double totalGrowthPerDay = 0;
+        double totalGrowthPerWeek = 0;
+        double totalGrowthPerMonth = 0;
+
+        for (Deposit deposit : deposits) {
+            total += deposit.getAmount();
+            currentTotal += deposit.getCurrentAmount();
+            totalGrowthPerSecond += deposit.getGrowthPerSecond();
+            totalGrowthPerMinute += deposit.getGrowthPerMinute();
+            totalGrowthPerHour += deposit.getGrowthPerHour();
+            totalGrowthPerDay += deposit.getGrowthPerDay();
+            totalGrowthPerWeek += deposit.getGrowthPerWeek();
+            totalGrowthPerMonth += deposit.getGrowthPerMonth();
+        }
+
+        totalAmountText.setText(String.format(
+            "Общая сумма вкладов: %.2f руб.\n" +
+            "Рост: %.6f руб/сек, %.4f руб/мин, %.2f руб/час\n" +
+            "Рост за периоды: %.2f/день, %.2f/неделю, %.2f/месяц",
+            total,
+            totalGrowthPerSecond, totalGrowthPerMinute, totalGrowthPerHour,
+            totalGrowthPerDay, totalGrowthPerWeek, totalGrowthPerMonth
+        ));
+    }
+}
+```
