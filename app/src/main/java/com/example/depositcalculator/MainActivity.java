@@ -15,6 +15,7 @@ import java.util.*;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
+import android.widget.ImageView;
 
 public class MainActivity extends AppCompatActivity {
     private List<Deposit> deposits;
