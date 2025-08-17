@@ -10,7 +10,7 @@
         android:id="@+id/current_amount_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="24sp" <!-- Увеличиваем размер шрифта -->
+        android:textSize="24sp"
         android:textStyle="bold"
         android:gravity="center"
         android:background="#E3F2FD"
@@ -35,6 +35,15 @@
         android:layout_height="wrap_content"
         android:text="Добавить вклад"
         android:layout_marginBottom="16dp"/>
+
+    <!-- НОВОЕ: Кнопка "Экспорт" -->
+    <Button
+        android:id="@+id/export_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Экспорт в CSV"
+        android:layout_marginBottom="16dp"/>
+    <!-- КОНЕЦ НОВОГО -->
 
     <!-- Список вкладов -->
     <TextView
